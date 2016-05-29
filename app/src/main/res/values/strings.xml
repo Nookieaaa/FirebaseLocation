@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Firebase location</string>
+    <string name="title_user_detail">User Detail</string>
+    <string name="title_activity_maps">Map</string>
+</resources>

@@ -1,12 +1,18 @@
-package com.nookdev.firebaselocation;
+package com.nookdev.firebaselocation.adapter;
 
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+import com.nookdev.firebaselocation.FirebaseManager;
+import com.nookdev.firebaselocation.R;
 import com.nookdev.firebaselocation.model.User;
 
 import java.util.ArrayList;
@@ -31,6 +37,18 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         mData.add(new User("user8",null));
         mData.add(new User("user9",null));
         mData.add(new User("user10",null));
+
+        FirebaseManager.getUsersPath().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String s = dataSnapshot.toString();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                String s = firebaseError.getDetails();
+            }
+        });
     }
 
     @Override
@@ -49,6 +67,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         User user = mData.get(holder.getAdapterPosition());
         holder.id.setText(String.valueOf(position));
         holder.name.setText(user.getName());
+        holder.row.setOnClickListener(v -> FirebaseManager.saveUser(mData.get(position)));
     }
 
     protected class UserListViewHolder extends RecyclerView.ViewHolder{
@@ -58,6 +77,9 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
 
         @BindView(R.id.user_list_item_name)
         TextView name;
+
+        @BindView(R.id.user_list_item)
+        LinearLayout row;
 
         public UserListViewHolder(View itemView) {
             super(itemView);

@@ -1,7 +1,9 @@
-package com.nookdev.firebaselocation;
+package com.nookdev.firebaselocation.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.nookdev.firebaselocation.R;
 
 public class MapActivity extends AppCompatActivity {
 

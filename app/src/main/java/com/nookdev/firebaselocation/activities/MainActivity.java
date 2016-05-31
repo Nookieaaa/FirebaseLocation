@@ -3,30 +3,46 @@ package com.nookdev.firebaselocation.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.nookdev.firebaselocation.Config;
+import com.nookdev.firebaselocation.FirebaseManager;
 import com.nookdev.firebaselocation.LocationProvider;
 import com.nookdev.firebaselocation.R;
-import com.nookdev.firebaselocation.interfaces.IOnLocationDetected;
 import com.nookdev.firebaselocation.model.User;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
+
+import static com.nookdev.firebaselocation.R.id.fab;
 
 @RuntimePermissions
 public class MainActivity extends AppCompatActivity {
 
     private boolean mTwoPaneMode = false;
+    private Unbinder mUnbinder;
+
+    @BindView(R.id.fab)
+    FloatingActionButton mFab;
+
+    @OnClick(fab)
+    public void onFabClick(View v){
+        MainActivityPermissionsDispatcher.registerUserWithCheck(this);
+        checkFabVisibility();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +51,16 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(view -> MainActivityPermissionsDispatcher.registerUserWithCheck(this));
-
         mTwoPaneMode = findViewById(R.id.map_fragment)!=null;
+        mUnbinder = ButterKnife.bind(this);
         MainActivityPermissionsDispatcher.registerUserWithCheck(this);
+    }
+
+    private void checkFabVisibility(){
+        if(isRegistered())
+            mFab.hide();
+        else if(!mFab.isShown())
+            mFab.show();
     }
 
     @Nullable
@@ -50,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         float lng = preferences.getFloat(Config.PREFS_KEY_LNG,0);
 
         if (name.length()>0&&lat!=0&&lng!=0)
-            return new User(name,new LatLng(lat,lng));
+            return new User(name,lat,lng);
         return null;
     }
 
@@ -60,15 +81,29 @@ public class MainActivity extends AppCompatActivity {
 
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     public void registerUser(){
-        if(!isRegistered()){
-            new LocationProvider(this).getLastLocation(this,new IOnLocationDetected() {
-                @Override
-                public void onLocationDetected(Location location) {
-                    User currentUser = new User("test",new LatLng(location.getLatitude(),location.getLongitude()));
-                    String s = currentUser.getName();
-                }
+        Log.d("location enabled","++++++");
+        //if(!isRegistered()){
+            new LocationProvider(this).getLastLocation(this, location -> {
+
+                //get user name
+                User currentUser = new User("test",(float)location.getLatitude(),(float)location.getLongitude());
+                SharedPreferences preferences = getSharedPreferences(Config.PREFS_NAME,MODE_PRIVATE);
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(Config.PREFS_KEY_USERNAME,currentUser.getName());
+                ed.putFloat(Config.PREFS_KEY_LAT,(float)currentUser.getLat());
+                ed.putFloat(Config.PREFS_KEY_LNG,(float)currentUser.getLng());
+                ed.apply();
+                FirebaseManager.saveUser(currentUser);
+
             });
-        }
+        //}
+        checkFabVisibility();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this,requestCode,grantResults);
     }
 
     @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)

@@ -22,7 +22,7 @@ public class MapManager implements IUpdate {
     }
 
     @Override
-    public void onDataUpdated(DataSnapshot dataSnapshot) {
+    public void onDataUpdated(DataSnapshot dataSnapshot,int action) {
         if(!isBound)
             return;
     }
@@ -48,7 +48,7 @@ public class MapManager implements IUpdate {
 
     private MarkerOptions createMarker(User user) {
         MarkerOptions options = new MarkerOptions()
-                .position(user.getLocation())
+                .position(user.toLatLng())
                 .snippet(user.getName());
         return options;
     }

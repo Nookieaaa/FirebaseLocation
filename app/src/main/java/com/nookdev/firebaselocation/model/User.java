@@ -10,29 +10,32 @@ public class User {
 
     public static final String FIREBASE_ALIAS = "Users";
 
-    private String mId;
-    private String mName;
-    private LatLng mLocation;
+    private String name;
+    private float lat;
+    private float lng;
 
-    public User(String name,LatLng location){
-        mName = name;
-        mLocation = location;
+    public User(){}
+
+    public User(String name, float lat, float lng){
+        this.name = name;
+        this.lat = lat;
+        this.lng = lng;
     }
 
-    public LatLng getLocation() {
-        return mLocation;
+    public LatLng toLatLng() {
+        return new LatLng(lat, lng);
+    }
+
+    public float getLat() {
+        return lat;
+    }
+
+    public float getLng() {
+        return lng;
     }
 
     public String getName() {
-        return mName;
-    }
-
-    public String getId() {
-        return mId;
-    }
-
-    public void setId(String id) {
-        mId = id;
+        return name;
     }
 
     @Override
@@ -48,8 +51,8 @@ public class User {
     public Bundle toBundle(){
         Bundle data = new Bundle();
         data.putString(Config.EXTRA_NAME,getName());
-        data.putFloat(Config.EXTRA_LAT,(float)getLocation().latitude);
-        data.putFloat(Config.EXTRA_LNG,(float)getLocation().longitude);
+        data.putFloat(Config.EXTRA_LAT,getLat());
+        data.putFloat(Config.EXTRA_LNG,getLng());
 
         return data;
     }

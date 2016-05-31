@@ -8,14 +8,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.firebase.client.DataSnapshot;
 import com.nookdev.firebaselocation.FirebaseManager;
-import com.nookdev.firebaselocation.interfaces.IUpdate;
 import com.nookdev.firebaselocation.R;
 import com.nookdev.firebaselocation.UpdateManager;
+import com.nookdev.firebaselocation.interfaces.IUpdate;
 import com.nookdev.firebaselocation.model.User;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -26,23 +24,15 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     private List<User> mData;
 
     public UserListAdapter() {
-        mData = new ArrayList<>();
-        mData.add(new User("user1",null));
-        mData.add(new User("user2",null));
-        mData.add(new User("user3",null));
-        mData.add(new User("user4",null));
-        mData.add(new User("user5",null));
-        mData.add(new User("user6",null));
-        mData.add(new User("user7",null));
-        mData.add(new User("user8",null));
-        mData.add(new User("user9",null));
-        mData.add(new User("user10",null));
 
-        UpdateManager.getInstance().addConsumer(new IUpdate() {
-            @Override
-            public void onDataUpdated(DataSnapshot dataSnapshot) {
-                String s = dataSnapshot.toString();
+        UpdateManager.getInstance().addConsumer((dataSnapshot, action) -> {
+            switch (action){
+                case IUpdate.ADD:{
+                    String s = dataSnapshot.toString();
+                    break;
+                }
             }
+            String s = dataSnapshot.toString();
         });
     }
 

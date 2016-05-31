@@ -3,16 +3,17 @@ package com.nookdev.firebaselocation;
 
 import android.util.Log;
 
+import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 import com.nookdev.firebaselocation.interfaces.IUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class UpdateManager implements ValueEventListener {
+public class UpdateManager implements ChildEventListener {
     List<IUpdate> mConsumers;
+
     private static UpdateManager sInstance = new UpdateManager();
 
     public static UpdateManager getInstance() {
@@ -31,9 +32,9 @@ public class UpdateManager implements ValueEventListener {
         }
     }
 
-    private void updateConsumers(DataSnapshot dataSnapshot){
+    private void updateConsumers(DataSnapshot dataSnapshot, int action){
         for (IUpdate consumer : mConsumers){
-            consumer.onDataUpdated(dataSnapshot);
+            consumer.onDataUpdated(dataSnapshot, action);
         }
     }
 
@@ -48,7 +49,9 @@ public class UpdateManager implements ValueEventListener {
     }
 
     public void subscribeUpdates(){
-        FirebaseManager.getUsersPath().addValueEventListener(this);
+        FirebaseManager.getUsersPath().addChildEventListener(this);
+
+
     }
 
     public void unsubscribeUpdates(){
@@ -56,12 +59,27 @@ public class UpdateManager implements ValueEventListener {
     }
 
     @Override
-    public void onDataChange(DataSnapshot dataSnapshot) {
-        updateConsumers(dataSnapshot);
+    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        updateConsumers(dataSnapshot,IUpdate.ADD);
+    }
+
+    @Override
+    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+    }
+
+    @Override
+    public void onChildRemoved(DataSnapshot dataSnapshot) {
+        updateConsumers(dataSnapshot,IUpdate.REMOVE);
+    }
+
+    @Override
+    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
     }
 
     @Override
     public void onCancelled(FirebaseError firebaseError) {
-        Log.d("FirebaseApp","update error");
+        Log.d("FirebaseAPP","error while updating");
     }
 }

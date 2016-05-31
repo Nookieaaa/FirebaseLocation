@@ -8,15 +8,17 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.nookdev.firebaselocation.R;
 import com.nookdev.firebaselocation.DataUpdateManager;
+import com.nookdev.firebaselocation.R;
 import com.nookdev.firebaselocation.interfaces.IUpdate;
+import com.nookdev.firebaselocation.interfaces.OnItemSelectedCallback;
 import com.nookdev.firebaselocation.model.User;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserListViewHolder> implements IUpdate {
+    private OnItemSelectedCallback mCallback;
 
     public UserListAdapter() {
         DataUpdateManager.getInstance().addConsumer(this);
@@ -36,9 +38,11 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     @Override
     public void onBindViewHolder(UserListViewHolder holder, int position) {
         User user = DataUpdateManager.getInstance().getUserAt(position);
-        holder.id.setText(String.valueOf(holder.getAdapterPosition()));
         holder.name.setText(user.getName());
-        //holder.row.setOnClickListener(v -> FirebaseManager.saveUser(mData.get(position)));
+        holder.row.setOnClickListener(v-> {
+            if(mCallback!=null)
+                mCallback.onItemSelected(user);
+        });
     }
 
     @Override
@@ -51,10 +55,17 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         notifyItemRemoved(position);
     }
 
+    public void setCallback(OnItemSelectedCallback callback) {
+        mCallback = callback;
+    }
+
+    public void release() {
+        DataUpdateManager.getInstance().removeConsumer(this);
+        mCallback = null;
+    }
+
     protected class UserListViewHolder extends RecyclerView.ViewHolder{
 
-        @BindView(R.id.user_list_item_id)
-        TextView id;
 
         @BindView(R.id.user_list_item_name)
         TextView name;

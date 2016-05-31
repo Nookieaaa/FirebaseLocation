@@ -3,6 +3,7 @@ package com.nookdev.firebaselocation.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,10 +14,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.MapFragment;
 import com.nookdev.firebaselocation.Config;
 import com.nookdev.firebaselocation.FirebaseManager;
 import com.nookdev.firebaselocation.LocationProvider;
+import com.nookdev.firebaselocation.MapManager;
 import com.nookdev.firebaselocation.R;
+import com.nookdev.firebaselocation.fragments.ListFragment;
 import com.nookdev.firebaselocation.model.User;
 
 import butterknife.BindView;
@@ -33,6 +37,7 @@ import static com.nookdev.firebaselocation.R.id.fab;
 public class MainActivity extends AppCompatActivity {
 
     private boolean mTwoPaneMode = false;
+    private MapManager mMapManager;
     private Unbinder mUnbinder;
 
     @BindView(R.id.fab)
@@ -52,8 +57,34 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mTwoPaneMode = findViewById(R.id.map_fragment)!=null;
+        try {
+            ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.list_fragment);
+            fragment.setTwoPane(mTwoPaneMode);
+        }catch (ClassCastException e){
+            e.printStackTrace();
+        }
+
+        if(mTwoPaneMode) {
+            MapFragment mf = (MapFragment) (getFragmentManager().findFragmentById(R.id.map_fragment));
+            if(mf!=null)
+                mf.getMapAsync(googleMap -> {
+                    mMapManager =  new MapManager(googleMap);
+                });
+        }
+
         mUnbinder = ButterKnife.bind(this);
-        MainActivityPermissionsDispatcher.registerUserWithCheck(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            MainActivityPermissionsDispatcher.registerUserWithCheck(this);
+        }
+        else
+            registerUser();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnbinder.unbind();
     }
 
     private void checkFabVisibility(){
@@ -82,21 +113,22 @@ public class MainActivity extends AppCompatActivity {
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     public void registerUser(){
         Log.d("location enabled","++++++");
-        //if(!isRegistered()){
+        if(!isRegistered()){
             new LocationProvider(this).getLastLocation(this, location -> {
 
-                //get user name
-                User currentUser = new User("test",(float)location.getLatitude(),(float)location.getLongitude());
+                User currentUser = new User((float)location.getLatitude(),(float)location.getLongitude());
+                String uid = FirebaseManager.saveUser(currentUser);
+                currentUser.setName(uid);
                 SharedPreferences preferences = getSharedPreferences(Config.PREFS_NAME,MODE_PRIVATE);
                 SharedPreferences.Editor ed = preferences.edit();
                 ed.putString(Config.PREFS_KEY_USERNAME,currentUser.getName());
-                ed.putFloat(Config.PREFS_KEY_LAT,(float)currentUser.getLat());
-                ed.putFloat(Config.PREFS_KEY_LNG,(float)currentUser.getLng());
+                ed.putFloat(Config.PREFS_KEY_LAT,currentUser.getLat());
+                ed.putFloat(Config.PREFS_KEY_LNG,currentUser.getLng());
                 ed.apply();
-                FirebaseManager.saveUser(currentUser);
+
 
             });
-        //}
+        }
         checkFabVisibility();
     }
 

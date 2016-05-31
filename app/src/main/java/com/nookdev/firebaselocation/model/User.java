@@ -17,6 +17,11 @@ public class User {
 
     public User(){}
 
+    public User(float lat, float lng){
+        this.lat = lat;
+        this.lng = lng;
+    }
+
     public User(String name, float lat, float lng){
         this.name = name;
         this.lat = lat;
@@ -37,6 +42,10 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

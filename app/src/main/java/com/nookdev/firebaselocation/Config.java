@@ -12,4 +12,5 @@ public class Config {
     public static final String EXTRA_LAT = "extra_lat";
     public static final String EXTRA_LNG = "extra_lng";
 
+    public static final String ARG_TWO_PANE_MODE = "two_pane_mode";
 }

@@ -1,36 +1,26 @@
 package com.nookdev.firebaselocation;
 
 
-import android.support.annotation.Nullable;
-
 import com.firebase.client.Firebase;
 import com.nookdev.firebaselocation.model.User;
 
 public class FirebaseManager {
 
-//    public static Single<Firebase> getUsersRef(){
-//        return Observable.just(getUsersPath()).toSingle();
-//    }
 
-    @Nullable
-    public static User getLastUser(){
-
-        return null;
-    }
-
-    public static void saveUser(User user){
-        getUsersPath().push().child(user.getName()).setValue(user);
+    public static String saveUser(User user){
+        Firebase firebase = getUsersPath().push();
+        String uid = firebase.getKey();
+        user.setName(uid);
+        firebase.setValue(user);
+        return uid;
     }
 
     public static Firebase getUsersPath(){
-        Firebase usersRef =  getFirebase().child(User.FIREBASE_ALIAS);
-        usersRef.keepSynced(true);
-        return usersRef;
+        return getFirebase().child(User.FIREBASE_ALIAS);
     }
 
     private static Firebase getFirebase(){
-        Firebase firebase = new Firebase(Config.FIREBASE_URL);
-        return firebase;
+        return new Firebase(Config.FIREBASE_URL);
     }
 
 }

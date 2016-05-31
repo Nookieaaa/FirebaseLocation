@@ -8,6 +8,7 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
 import com.nookdev.firebaselocation.interfaces.IUpdate;
+import com.nookdev.firebaselocation.interfaces.OnItemSelectedCallback;
 import com.nookdev.firebaselocation.model.User;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DataUpdateManager implements ChildEventListener {
+    private OnItemSelectedCallback mItemSelectedCallback;
     List<IUpdate> mConsumers;
     private HashMap<String,User> mUsersMap = new HashMap<String,User>(){
         @Override
@@ -28,6 +30,7 @@ public class DataUpdateManager implements ChildEventListener {
         }
     };
     private List<String> mData = new ArrayList<>();
+    private User mCurrentSelectedUser;
 
     private static DataUpdateManager sInstance = new DataUpdateManager();
 
@@ -49,33 +52,28 @@ public class DataUpdateManager implements ChildEventListener {
 
     private void updateConsumers(DataSnapshot dataSnapshot, int action){
         String key = dataSnapshot.getKey();
-        for(DataSnapshot userSnapshot:dataSnapshot.getChildren()){
-            switch (action){
-                case IUpdate.ADD:{
-                    String name = key;
-                    double lat = (double)userSnapshot.child("lat").getValue();
-                    double lng = (double)userSnapshot.child("lng").getValue();
-                    User user = new User(name,(float)lat,(float)lng);
-                    mUsersMap.put(key,user);
-                    if(!mData.contains(key)) {
-                        mData.add(0,key);
-                        for(IUpdate consumer:mConsumers){
-                            consumer.onItemAdded(0);
-                        }
+        switch (action){
+            case IUpdate.ADD:{
+                User user = dataSnapshot.getValue(User.class);
+                mUsersMap.put(key,user);
+                if(!mData.contains(key)) {
+                    mData.add(key);
+                    for(IUpdate consumer:mConsumers){
+                        consumer.onItemAdded(mData.indexOf(key));
                     }
-                    break;
                 }
-                case IUpdate.REMOVE:{
-                    mUsersMap.remove(key);
-                    if(mData.contains(key)){
-                        int index = mData.indexOf(key);
-                        mData.remove(key);
-                        for (IUpdate consumer : mConsumers){
-                            consumer.onItemRemoved(index);
-                        }
+                break;
+            }
+            case IUpdate.REMOVE:{
+                mUsersMap.remove(key);
+                if(mData.contains(key)){
+                    int index = mData.indexOf(key);
+                    mData.remove(key);
+                    for (IUpdate consumer : mConsumers){
+                        consumer.onItemRemoved(index);
                     }
-                    break;
                 }
+                break;
             }
         }
 
@@ -83,7 +81,10 @@ public class DataUpdateManager implements ChildEventListener {
 
     @Nullable
     public User getUserAt(int index){
-        return mUsersMap.get(mData.get(index));
+        if(mData.size()>0)
+            return mUsersMap.get(mData.get(index));
+        else
+            return null;
     }
 
     public int getSize(){
@@ -108,6 +109,21 @@ public class DataUpdateManager implements ChildEventListener {
 
     public void unsubscribeUpdates(){
         FirebaseManager.getUsersPath().removeEventListener(this);
+    }
+
+    public void setCurrentSelectedUser(String name){
+        mCurrentSelectedUser = mUsersMap.get(name);
+        if(mItemSelectedCallback!=null)
+            mItemSelectedCallback.onItemSelected(mCurrentSelectedUser);
+    }
+
+    public void setItemSelectedCallback(OnItemSelectedCallback callback){
+        mItemSelectedCallback = callback;
+    }
+
+    @Nullable
+    public User getCurrentSelectedUser(){
+        return mCurrentSelectedUser;
     }
 
     @Override

@@ -9,10 +9,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 import com.nookdev.firebaselocation.FirebaseManager;
+import com.nookdev.firebaselocation.interfaces.IUpdate;
 import com.nookdev.firebaselocation.R;
+import com.nookdev.firebaselocation.UpdateManager;
 import com.nookdev.firebaselocation.model.User;
 
 import java.util.ArrayList;
@@ -38,15 +38,10 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         mData.add(new User("user9",null));
         mData.add(new User("user10",null));
 
-        FirebaseManager.getUsersPath().addValueEventListener(new ValueEventListener() {
+        UpdateManager.getInstance().addConsumer(new IUpdate() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataUpdated(DataSnapshot dataSnapshot) {
                 String s = dataSnapshot.toString();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                String s = firebaseError.getDetails();
             }
         });
     }

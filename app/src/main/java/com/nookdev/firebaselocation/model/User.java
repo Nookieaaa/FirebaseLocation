@@ -1,9 +1,10 @@
 package com.nookdev.firebaselocation.model;
 
 
-import android.location.Location;
+import android.os.Bundle;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.nookdev.firebaselocation.Config;
 
 public class User {
 
@@ -13,9 +14,9 @@ public class User {
     private String mName;
     private LatLng mLocation;
 
-    public User(String name,Location location){
+    public User(String name,LatLng location){
         mName = name;
-        //mLocation = new LatLng(location.getLatitude(),location.getLongitude());
+        mLocation = location;
     }
 
     public LatLng getLocation() {
@@ -32,5 +33,24 @@ public class User {
 
     public void setId(String id) {
         mId = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    public Bundle toBundle(){
+        Bundle data = new Bundle();
+        data.putString(Config.EXTRA_NAME,getName());
+        data.putFloat(Config.EXTRA_LAT,(float)getLocation().latitude);
+        data.putFloat(Config.EXTRA_LNG,(float)getLocation().longitude);
+
+        return data;
     }
 }

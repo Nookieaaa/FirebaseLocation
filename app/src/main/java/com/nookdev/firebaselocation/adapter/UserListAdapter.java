@@ -8,32 +8,18 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.nookdev.firebaselocation.FirebaseManager;
 import com.nookdev.firebaselocation.R;
-import com.nookdev.firebaselocation.UpdateManager;
+import com.nookdev.firebaselocation.DataUpdateManager;
 import com.nookdev.firebaselocation.interfaces.IUpdate;
 import com.nookdev.firebaselocation.model.User;
-
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserListViewHolder> {
-
-    private List<User> mData;
+public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserListViewHolder> implements IUpdate {
 
     public UserListAdapter() {
-
-        UpdateManager.getInstance().addConsumer((dataSnapshot, action) -> {
-            switch (action){
-                case IUpdate.ADD:{
-                    String s = dataSnapshot.toString();
-                    break;
-                }
-            }
-            String s = dataSnapshot.toString();
-        });
+        DataUpdateManager.getInstance().addConsumer(this);
     }
 
     @Override
@@ -44,15 +30,25 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
 
     @Override
     public int getItemCount() {
-        return mData!=null ? mData.size() : 0;
+        return DataUpdateManager.getInstance().getSize();
     }
 
     @Override
     public void onBindViewHolder(UserListViewHolder holder, int position) {
-        User user = mData.get(holder.getAdapterPosition());
-        holder.id.setText(String.valueOf(position));
+        User user = DataUpdateManager.getInstance().getUserAt(position);
+        holder.id.setText(String.valueOf(holder.getAdapterPosition()));
         holder.name.setText(user.getName());
-        holder.row.setOnClickListener(v -> FirebaseManager.saveUser(mData.get(position)));
+        //holder.row.setOnClickListener(v -> FirebaseManager.saveUser(mData.get(position)));
+    }
+
+    @Override
+    public void onItemAdded(int position) {
+        notifyItemInserted(position);
+    }
+
+    @Override
+    public void onItemRemoved(int position) {
+        notifyItemRemoved(position);
     }
 
     protected class UserListViewHolder extends RecyclerView.ViewHolder{

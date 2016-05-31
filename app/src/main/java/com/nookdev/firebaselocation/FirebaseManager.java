@@ -19,7 +19,7 @@ public class FirebaseManager {
     }
 
     public static void saveUser(User user){
-        getUsersPath().child(user.getName()).setValue(user);
+        getUsersPath().push().child(user.getName()).setValue(user);
     }
 
     public static Firebase getUsersPath(){

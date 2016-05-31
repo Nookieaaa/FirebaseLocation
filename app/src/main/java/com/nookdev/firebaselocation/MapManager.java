@@ -21,10 +21,15 @@ public class MapManager implements IUpdate {
         isBound = true;
     }
 
+
     @Override
-    public void onDataUpdated(DataSnapshot dataSnapshot,int action) {
-        if(!isBound)
-            return;
+    public void onItemAdded(int position) {
+
+    }
+
+    @Override
+    public void onItemRemoved(int position) {
+
     }
 
     public void unBind(){

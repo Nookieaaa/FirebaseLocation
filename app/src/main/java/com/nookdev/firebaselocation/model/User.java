@@ -3,6 +3,7 @@ package com.nookdev.firebaselocation.model;
 
 import android.os.Bundle;
 
+import com.firebase.client.DataSnapshot;
 import com.google.android.gms.maps.model.LatLng;
 import com.nookdev.firebaselocation.Config;
 
@@ -55,5 +56,9 @@ public class User {
         data.putFloat(Config.EXTRA_LNG,getLng());
 
         return data;
+    }
+
+    public static User fromSnapShot(DataSnapshot dataSnapshot){
+        return dataSnapshot.getValue(User.class);
     }
 }
